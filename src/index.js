@@ -8,6 +8,7 @@ L.Control.EasyPrint = L.Control.extend({
     sizeModes: ["Current"],
     filename: "map",
     exportOnly: false,
+    captureDataUrl: false,
     hidden: false,
     tileWait: 500,
     hideControlContainer: true,
@@ -136,6 +137,7 @@ L.Control.EasyPrint = L.Control.extend({
     }
     var sizeMode = typeof event !== "string" ? event.target.className : event;
     if (sizeMode === "CurrentSize") {
+      console.log("hello");
       return this._printOpertion(sizeMode);
     }
     this.outerContainer = this._createOuterContainer(this.mapContainer);
@@ -153,7 +155,6 @@ L.Control.EasyPrint = L.Control.extend({
         height: parseInt(this.originalState.mapHeight.replace("px")),
       })
       .then(function (dataUrl) {
-        console.log(dataUrl);
         plugin.blankDiv = document.createElement("div");
         var blankDiv = plugin.blankDiv;
         plugin.outerContainer.parentElement.insertBefore(
@@ -216,46 +217,46 @@ L.Control.EasyPrint = L.Control.extend({
     ) {
       widthForExport = this.originalState.mapWidth;
     }
-    domtoimage
-      .toPng(plugin.mapContainer, {
-        width: parseInt(widthForExport),
-        height: parseInt(plugin.mapContainer.style.height.replace("px")),
-      })
-      .then(function (dataUrl) {
-        console.log(dataUrl);
-        var blob = plugin._dataURItoBlob(dataUrl);
-        if (plugin.options.exportOnly) {
-          fileSaver.saveAs(blob, plugin.options.filename + ".png");
-        } else {
-          plugin._sendToBrowserPrint(dataUrl, plugin.orientation);
-        }
-        plugin._toggleControls(true);
-        plugin._toggleClasses(plugin.options.hideClasses, true);
+    return domtoimage.toPng(plugin.mapContainer, {
+      width: parseInt(widthForExport),
+      height: parseInt(plugin.mapContainer.style.height.replace("px")),
+    });
 
-        if (plugin.outerContainer) {
-          if (plugin.originalState.widthWasAuto) {
-            plugin.mapContainer.style.width = "auto";
-          } else if (plugin.originalState.widthWasPercentage) {
-            plugin.mapContainer.style.width =
-              plugin.originalState.percentageWidth;
-          } else {
-            plugin.mapContainer.style.width = plugin.originalState.mapWidth;
-          }
-          plugin.mapContainer.style.height = plugin.originalState.mapHeight;
-          plugin._removeOuterContainer(
-            plugin.mapContainer,
-            plugin.outerContainer,
-            plugin.blankDiv
-          );
-          plugin._map.invalidateSize();
-          plugin._map.setView(plugin.originalState.center);
-          plugin._map.setZoom(plugin.originalState.zoom);
-        }
-        plugin._map.fire("easyPrint-finished");
-      })
-      .catch(function (error) {
-        console.error("Print operation failed", error);
-      });
+    // .then(function (dataUrl) {
+    //   console.log("print operation");
+    //   var blob = plugin._dataURItoBlob(dataUrl);
+    //   if (plugin.options.exportOnly) {
+    //     fileSaver.saveAs(blob, plugin.options.filename + ".png");
+    //   } else {
+    //     plugin._sendToBrowserPrint(dataUrl, plugin.orientation);
+    //   }
+    //   plugin._toggleControls(true);
+    //   plugin._toggleClasses(plugin.options.hideClasses, true);
+
+    //   if (plugin.outerContainer) {
+    //     if (plugin.originalState.widthWasAuto) {
+    //       plugin.mapContainer.style.width = "auto";
+    //     } else if (plugin.originalState.widthWasPercentage) {
+    //       plugin.mapContainer.style.width =
+    //         plugin.originalState.percentageWidth;
+    //     } else {
+    //       plugin.mapContainer.style.width = plugin.originalState.mapWidth;
+    //     }
+    //     plugin.mapContainer.style.height = plugin.originalState.mapHeight;
+    //     plugin._removeOuterContainer(
+    //       plugin.mapContainer,
+    //       plugin.outerContainer,
+    //       plugin.blankDiv
+    //     );
+    //     plugin._map.invalidateSize();
+    //     plugin._map.setView(plugin.originalState.center);
+    //     plugin._map.setZoom(plugin.originalState.zoom);
+    //   }
+    //   plugin._map.fire("easyPrint-finished");
+    // })
+    // .catch(function (error) {
+    //   console.error("Print operation failed", error);
+    // });
   },
 
   _sendToBrowserPrint: function (img, orientation) {
